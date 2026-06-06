@@ -1,0 +1,44 @@
+{
+  "name": "mywatchlist",
+  "version": "1.0.0",
+  "description": "Personal ranked movie and series watchlist for local-first use.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "watchlist",
+    "movies",
+    "series"
+  ],
+  "author": "Vignesh Sundhar",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.17.0",
+    "next": "^16.2.7",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.9.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.1.1",
+    "postcss": "^8.5.15",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  },
+  "overrides": {
+    "postcss": "^8.5.15"
+  }
+}

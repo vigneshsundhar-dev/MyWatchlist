@@ -1,0 +1,1 @@
+Vignesh likes layered, emotionally intelligent films, clever thrillers, philosophical sci-fi, strong character dramas, inventive storytelling, and well-regarded classics. He wants to avoid defaulting to mediocre new streaming releases. He values movies and series he intentionally saved for a reason.
