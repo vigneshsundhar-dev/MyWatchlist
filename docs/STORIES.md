@@ -26,7 +26,7 @@ GitHub issues are the source of truth for status. This file keeps the PRD-to-sto
 ## DevOps Stories
 
 1. [#16](https://github.com/vigneshsundhar-dev/MyWatchlist/issues/16) Firebase App Hosting and Firestore production plumbing. Closed in DevOps plumbing pass.
-2. [#17](https://github.com/vigneshsundhar-dev/MyWatchlist/issues/17) Cloudflare `/watchlist` path proxy plumbing. Closed in DevOps plumbing pass.
+2. [#17](https://github.com/vigneshsundhar-dev/MyWatchlist/issues/17) Cloudflare `/mywatchlist` path proxy plumbing. Closed in DevOps plumbing pass.
 3. [#18](https://github.com/vigneshsundhar-dev/MyWatchlist/issues/18) OpenAI-only ranking hardening and spend controls. Closed in DevOps plumbing pass.
 4. [#19](https://github.com/vigneshsundhar-dev/MyWatchlist/issues/19) Credential runbook and CI verification. Closed in DevOps plumbing pass.
 5. [#20](https://github.com/vigneshsundhar-dev/MyWatchlist/issues/20) Create Firebase backend, set secrets, and activate Cloudflare routes. Open, blocked until explicit `deploy`.

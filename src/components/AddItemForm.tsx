@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { NOTE_MIN_LENGTH } from "@/lib/watchlist/constants";
 import type { MediaSearchResult } from "@/lib/watchlist/types";
 import { formatYear, mediaTypeLabel } from "@/lib/watchlist/format";
+import { watchlistItemPath } from "@/lib/watchlist/routes";
 import { Poster } from "./Poster";
 
 export function AddItemForm() {
@@ -64,7 +65,7 @@ export function AddItemForm() {
       if (!response.ok || !payload.item) {
         throw new Error(payload.error ?? "Unable to add item.");
       }
-      router.push(`/watchlist/item/${payload.item.id}`);
+      router.push(watchlistItemPath(payload.item.id));
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to add item.");

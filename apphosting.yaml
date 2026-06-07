@@ -19,7 +19,13 @@ env:
       - RUNTIME
 
   - variable: NEXT_PUBLIC_DEPLOY_ASSET_PREFIX
-    value: /watchlist
+    value: /mywatchlist
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_WATCHLIST_BASE_PATH
+    value: /mywatchlist
     availability:
       - BUILD
       - RUNTIME

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Film, Plus, RefreshCw, SlidersHorizontal, Tv } from "lucide-react";
 import { formatDate, formatYear, mediaTypeLabel, scoreLabel, statusLabel } from "@/lib/watchlist/format";
+import { watchlistItemPath, watchlistPath } from "@/lib/watchlist/routes";
 import type { MediaType, WatchStatus, WatchlistItem } from "@/lib/watchlist/types";
 import { Poster } from "./Poster";
 import { ProviderSearchButtons } from "./ProviderSearchButtons";
@@ -82,7 +83,7 @@ function HeroCard({ item, onShowNote }: Readonly<{ item: WatchlistItem; onShowNo
             <FileText size={16} aria-hidden />
             Note
           </button>
-          <Link className="btn" href={`/watchlist/item/${item.id}`}>
+          <Link className="btn" href={watchlistItemPath(item.id)}>
             Details
           </Link>
         </div>
@@ -111,7 +112,7 @@ function ListCard({ item, onShowNote }: Readonly<{ item: WatchlistItem; onShowNo
             <FileText size={16} aria-hidden />
             Note
           </button>
-          <Link className="btn" href={`/watchlist/item/${item.id}`}>
+          <Link className="btn" href={watchlistItemPath(item.id)}>
             Details
           </Link>
           <ProviderSearchButtons item={item} compact />
@@ -167,7 +168,7 @@ export function WatchlistDashboard({ items }: Readonly<{ items: WatchlistItem[] 
           <h1>Watch Now</h1>
           <p>{visibleItems.length} {statusLabel(status).toLowerCase()} {mediaType === "movie" ? "movies" : "series"}</p>
         </div>
-        <Link className="btn primary" href="/watchlist/add">
+        <Link className="btn primary" href={watchlistPath("/add")}>
           <Plus size={17} aria-hidden />
           Add item
         </Link>

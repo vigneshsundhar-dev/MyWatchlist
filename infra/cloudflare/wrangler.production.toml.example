@@ -7,10 +7,10 @@ workers_dev = false
 account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
 
 routes = [
-  { pattern = "vigneshsundhar.com/watchlist*", zone_name = "vigneshsundhar.com" },
+  { pattern = "vigneshsundhar.com/mywatchlist*", zone_name = "vigneshsundhar.com" },
   { pattern = "vigneshsundhar.com/api/watchlist*", zone_name = "vigneshsundhar.com" }
 ]
 
 [vars]
 FIREBASE_APP_ORIGIN = "https://YOUR_FIREBASE_APP_HOSTING_ORIGIN"
-DEPLOY_PATH_PREFIX = "/watchlist"
+DEPLOY_PATH_PREFIX = "/mywatchlist"

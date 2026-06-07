@@ -4,6 +4,7 @@ import { Poster } from "@/components/Poster";
 import { StatusControls } from "@/components/StatusControls";
 import { formatDate, formatYear, mediaTypeLabel } from "@/lib/watchlist/format";
 import { watchlistRepository } from "@/lib/watchlist/repository";
+import { watchlistItemPath } from "@/lib/watchlist/routes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export default async function AbandonedPage() {
                   <span className="score">{formatDate(item.abandoned_at)}</span>
                 </div>
                 <p className="muted">{item.rank_reason ?? item.overview}</p>
-                <Link className="btn" href={`/watchlist/item/${item.id}`}>
+                <Link className="btn" href={watchlistItemPath(item.id)}>
                   Details
                 </Link>
               </div>

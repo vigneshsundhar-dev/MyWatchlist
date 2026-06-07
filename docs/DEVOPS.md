@@ -1,6 +1,6 @@
 # DevOps Plumbing
 
-This repo is prepared for Firebase App Hosting + Firestore, with Cloudflare proxy routing for `vigneshsundhar.com/watchlist`.
+This repo is prepared for Firebase App Hosting + Firestore, with Cloudflare proxy routing for `vigneshsundhar.com/mywatchlist`.
 
 Nothing should be deployed from this repo until Vignesh explicitly says `deploy`.
 
@@ -9,7 +9,7 @@ Nothing should be deployed from this repo until Vignesh explicitly says `deploy`
 - Local development: Next.js + `data/watchlist.json`.
 - Production storage: Firestore through the Firebase Admin SDK.
 - Production app host: Firebase App Hosting for the Next.js app.
-- Public path: Cloudflare Worker route proxies `vigneshsundhar.com/watchlist*` and `vigneshsundhar.com/api/watchlist*` to the Firebase origin.
+- Public path: Cloudflare Worker route proxies `vigneshsundhar.com/mywatchlist*` and `vigneshsundhar.com/api/watchlist*` to the Firebase origin.
 - LLM ranking: OpenAI Responses API, disabled unless `OPENAI_RANKING_ENABLED=true`.
 
 ## Firebase Values Needed
@@ -24,17 +24,18 @@ I need:
 Exact steps:
 
 1. Go to [Firebase console](https://console.firebase.google.com/).
-2. Create or select a project for this app.
-3. Copy the project ID from Project settings > General > Project ID.
-4. In Build > Firestore database, click Create database.
-5. Choose Production mode.
-6. Choose a region. Prefer the same region later used for App Hosting.
-7. For local service access, open [Google Cloud Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts).
-8. Select the Firebase project.
-9. Create a service account named `mywatchlist-local-admin`.
-10. Grant the least role that lets it read/write Firestore, usually `Cloud Datastore User`.
-11. Open the service account > Keys > Add key > Create new key > JSON.
-12. Copy the JSON contents into `.env.local` as a single-line `FIREBASE_SERVICE_ACCOUNT_JSON='...'`, or save it outside the repo and set `GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/key.json`.
+2. Create a new Firebase project for this app. Do not reuse the Tara app project.
+3. Use a project ID such as `mywatchlist-vignesh` or another available watchlist-specific ID.
+4. Copy the project ID from Project settings > General > Project ID.
+5. In Build > Firestore database, click Create database.
+6. Choose Production mode.
+7. Choose a region. Prefer the same region later used for App Hosting.
+8. For local service access, open [Google Cloud Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts).
+9. Select the new Firebase project.
+10. Create a service account named `mywatchlist-local-admin`.
+11. Grant the least role that lets it read/write Firestore, usually `Cloud Datastore User`.
+12. Open the service account > Keys > Add key > Create new key > JSON.
+13. Copy the JSON contents into `.env.local` as a single-line `FIREBASE_SERVICE_ACCOUNT_JSON='...'`, or save it outside the repo and set `GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/key.json`.
 
 ## Firebase App Hosting Setup
 

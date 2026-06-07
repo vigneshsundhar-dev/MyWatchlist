@@ -9,7 +9,7 @@ function stripTrailingSlash(value: string) {
 
 function upstreamUrl(requestUrl: URL, env: Env) {
   const origin = new URL(stripTrailingSlash(env.FIREBASE_APP_ORIGIN));
-  const prefix = env.DEPLOY_PATH_PREFIX || "/watchlist";
+  const prefix = env.DEPLOY_PATH_PREFIX || "/mywatchlist";
   const upstream = new URL(requestUrl.toString());
   upstream.protocol = origin.protocol;
   upstream.hostname = origin.hostname;
