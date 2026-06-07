@@ -1,6 +1,6 @@
 import type { MediaSearchResult, MediaType } from "./types";
 
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_BASE_URL = process.env.TMDB_API_BASE_URL ?? "https://api.themoviedb.org/3";
 const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w342";
 
 interface TmdbSearchItem {

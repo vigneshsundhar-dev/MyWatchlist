@@ -1,6 +1,6 @@
 import type { MediaType, MetadataSources, WatchlistItem } from "./types";
 
-const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+const TMDB_BASE_URL = process.env.TMDB_API_BASE_URL ?? "https://api.themoviedb.org/3";
 const TMDB_IMAGE_ORIGINAL = "https://image.tmdb.org/t/p/original";
 const TMDB_IMAGE_POSTER = "https://image.tmdb.org/t/p/w500";
 

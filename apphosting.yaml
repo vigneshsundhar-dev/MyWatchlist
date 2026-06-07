@@ -8,6 +8,13 @@ runConfig:
   memoryMiB: 512
 
 env:
+  # TMDb's primary host api.themoviedb.org is blocked/reset on some networks (e.g. India ISPs).
+  # api.tmdb.org serves the identical API and is reachable everywhere, so pin deploy to it too.
+  - variable: TMDB_API_BASE_URL
+    value: https://api.tmdb.org/3
+    availability:
+      - RUNTIME
+
   - variable: WATCHLIST_STORAGE
     value: firebase
     availability:
@@ -37,6 +44,11 @@ env:
 
   - variable: OPENAI_RANKING_MODEL
     value: gpt-5-nano
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_REASONING_EFFORT
+    value: minimal
     availability:
       - RUNTIME
 

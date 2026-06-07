@@ -141,7 +141,7 @@ function fallbackRank(items: WatchlistItem[], config: RankingConfig, mode: Ranki
       const taraBoost = item.tara_interested ? (mode === "with_tara" ? 18 : 4) : 0;
       const score = Math.max(0, Math.min(100, 34 + ageBoost + noteBoost + metadataBoost + tasteBoost + taraBoost));
       const reasonParts = [
-        "Ranked from the local fallback because LLM ranking is not configured",
+        "Ranked by the built-in local ranker",
         noteBoost >= 8 ? "the note shows clear personal intent" : "the note provides watch intent",
         metadataBoost >= 18 ? "metadata has strong quality signals" : "metadata provides some quality signal",
         ageBoost >= 8 ? "it has been waiting long enough to deserve a boost" : "recency does not dominate the rank"
@@ -367,6 +367,11 @@ async function rankWithOpenAI(
     },
     body: JSON.stringify({
       model: process.env.OPENAI_RANKING_MODEL ?? DEFAULT_OPENAI_MODEL,
+      // gpt-5 reasoning models spend output tokens on hidden reasoning before the JSON.
+      // Without this they routinely blow past max_output_tokens, truncating the JSON so the
+      // result is discarded and we fall back to local ranking after already paying. "minimal"
+      // keeps reasoning near zero so the structured JSON fits the budget reliably.
+      reasoning: { effort: process.env.OPENAI_RANKING_REASONING_EFFORT ?? "minimal" },
       input: [
         {
           role: "system",
