@@ -130,3 +130,33 @@ CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_ZONE_ID=
 CLOUDFLARE_API_TOKEN=
 ```
+
+## Production Deployment (LIVE)
+
+Deployed and verified live on 2026-06-07 at **https://vigneshsundhar.com/mywatchlist**.
+
+- **Firebase project:** `mywatchlist-abd3b` (Blaze plan).
+- **App Hosting backend:** `mywatchlist`, region `us-central1`, runtime `nodejs24`.
+  Builds from GitHub `main` using `apphosting.yaml`.
+  Origin URL: `https://mywatchlist--mywatchlist-abd3b.us-central1.hosted.app`
+- **Storage:** Firestore collection `watchlist_items` (`WATCHLIST_STORAGE=firebase`).
+  Local development still uses `data/watchlist.json`.
+- **Secrets** (Google Secret Manager, granted to the backend service account):
+  `tmdbApiKey`, `omdbApiKey`, `openaiApiKey`.
+- **Cloudflare Worker:** `mywatchlist-path-proxy` on zone `vigneshsundhar.com`
+  (zone id `35c3a5b21b8db994ed2eece927568b56`). Routes
+  `vigneshsundhar.com/mywatchlist*` and `vigneshsundhar.com/api/watchlist*` to the
+  App Hosting origin. Config: `infra/cloudflare/wrangler.production.toml` (kept local,
+  not committed; only the `.example` is tracked).
+- **OpenAI ranking is disabled in production** (`OPENAI_RANKING_ENABLED=false`); prod
+  uses the free deterministic local ranker. The `openaiApiKey` secret exists for future
+  enablement. See issues #21 / #22 before raising ranking limits.
+
+### Redeploying
+
+- Trigger a rollout: `npx firebase apphosting:rollouts:create mywatchlist -b main --force --project mywatchlist-abd3b`
+  (or push to `main` if automatic rollouts are enabled on the backend).
+- Redeploy the Cloudflare Worker:
+  `CLOUDFLARE_API_TOKEN=... npx wrangler deploy --config infra/cloudflare/wrangler.production.toml`
+- After adding/rotating a secret, grant access:
+  `npx firebase apphosting:secrets:grantaccess <name> --backend mywatchlist --project mywatchlist-abd3b`
