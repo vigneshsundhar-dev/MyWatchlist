@@ -4,6 +4,8 @@ Personal, local-first watchlist app for deciding what movie or series to watch n
 
 The source PRD lives in [docs/PRD.md](docs/PRD.md). Implementation stories are tracked in GitHub issues and summarized in [docs/STORIES.md](docs/STORIES.md).
 
+Deployment plumbing is documented in [docs/DEVOPS.md](docs/DEVOPS.md). The app remains local-only unless Vignesh explicitly says `deploy`.
+
 ## Local Development
 
 ```bash
@@ -20,9 +22,9 @@ The app stores local data in `data/watchlist.json`, which is ignored by git. Not
 
 - `TMDB_API_KEY`: TMDb search and metadata.
 - `OMDB_API_KEY`: IMDb and Rotten Tomatoes metadata fallback where OMDb returns it.
-- `LLM_API_KEY`: LLM ranking.
+- `OPENAI_API_KEY`: OpenAI ranking.
 
-When `LLM_API_KEY` is not configured, the ranking service uses a deterministic local fallback so tests and local UI flows remain runnable.
+When `OPENAI_RANKING_ENABLED` is not `true`, the ranking service uses a deterministic local fallback so tests and local UI flows remain runnable without spending API credits.
 
 ## Verification
 

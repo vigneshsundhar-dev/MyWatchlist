@@ -1,14 +1,14 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createFileWatchlistRepository, type WatchlistRepository } from "./repository";
 import { rerankAll } from "./rankingService";
 import type { NewWatchlistItem } from "./repository";
 
 let tempDir: string;
 let repository: WatchlistRepository;
-let originalLlmKey: string | undefined;
+let originalEnv: NodeJS.ProcessEnv;
 
 function item(overrides: Partial<NewWatchlistItem>): NewWatchlistItem {
   return {
@@ -23,18 +23,17 @@ function item(overrides: Partial<NewWatchlistItem>): NewWatchlistItem {
 }
 
 beforeEach(async () => {
-  originalLlmKey = process.env.LLM_API_KEY;
-  delete process.env.LLM_API_KEY;
+  originalEnv = { ...process.env };
+  delete process.env.OPENAI_API_KEY;
+  delete process.env.OPENAI_RANKING_ENABLED;
   tempDir = await mkdtemp(path.join(os.tmpdir(), "mywatchlist-ranking-"));
+  process.env.OPENAI_RANKING_RECORD_USAGE = "false";
   repository = createFileWatchlistRepository(path.join(tempDir, "watchlist.json"));
 });
 
 afterEach(async () => {
-  if (originalLlmKey === undefined) {
-    delete process.env.LLM_API_KEY;
-  } else {
-    process.env.LLM_API_KEY = originalLlmKey;
-  }
+  process.env = originalEnv;
+  vi.restoreAllMocks();
   await rm(tempDir, { recursive: true, force: true });
 });
 
@@ -93,5 +92,75 @@ describe("rerankAll", () => {
     expect(rankedSeries?.rank_reason).toContain("local fallback");
     expect(rankedSeries?.ranking_context_hash).toHaveLength(64);
     expect(watchedItem?.rank_position).toBeUndefined();
+  });
+
+  it("uses OpenAI Responses API when explicitly enabled", async () => {
+    const created = await repository.createItem(
+      item({
+        title: "Careful Thriller",
+        note: "A clever thriller that should fit the ranking profile."
+      })
+    );
+    process.env.OPENAI_API_KEY = "test-key";
+    process.env.OPENAI_RANKING_ENABLED = "true";
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          output_text: JSON.stringify({
+            rankings: [
+              {
+                id: created.id,
+                rank_score: 96,
+                rank_reason: "Strong fit with the profile and a clear personal note."
+              }
+            ]
+          }),
+          usage: {
+            input_tokens: 100,
+            output_tokens: 50,
+            total_tokens: 150
+          }
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      )
+    );
+
+    await rerankAll({
+      repository,
+      now: new Date("2026-06-01T00:00:00.000Z")
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://api.openai.com/v1/responses");
+    const body = JSON.parse(String(init?.body));
+    expect(body.model).toBe("gpt-5-nano");
+    expect(body.max_output_tokens).toBe(900);
+    expect(body.text.format.type).toBe("json_schema");
+    const ranked = await repository.getItem(created.id);
+    expect(ranked?.rank_score).toBe(96);
+    expect(ranked?.rank_reason).toBe("Strong fit with the profile and a clear personal note.");
+  });
+
+  it("falls back without calling OpenAI when local monthly budget would be exceeded", async () => {
+    const created = await repository.createItem(
+      item({
+        title: "Budget Guarded Film",
+        note: "A thoughtful film that should rank locally when budget is exhausted."
+      })
+    );
+    process.env.OPENAI_API_KEY = "test-key";
+    process.env.OPENAI_RANKING_ENABLED = "true";
+    process.env.OPENAI_RANKING_MONTHLY_BUDGET_USD = "0.000001";
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    await rerankAll({
+      repository,
+      now: new Date("2026-06-01T00:00:00.000Z")
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    const ranked = await repository.getItem(created.id);
+    expect(ranked?.rank_reason).toContain("local fallback");
   });
 });

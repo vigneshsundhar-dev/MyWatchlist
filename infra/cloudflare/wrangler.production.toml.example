@@ -1,0 +1,16 @@
+name = "mywatchlist-path-proxy"
+main = "./watchlist-proxy.ts"
+compatibility_date = "2026-06-07"
+workers_dev = false
+
+# Fill these in only when you explicitly deploy.
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+routes = [
+  { pattern = "vigneshsundhar.com/watchlist*", zone_name = "vigneshsundhar.com" },
+  { pattern = "vigneshsundhar.com/api/watchlist*", zone_name = "vigneshsundhar.com" }
+]
+
+[vars]
+FIREBASE_APP_ORIGIN = "https://YOUR_FIREBASE_APP_HOSTING_ORIGIN"
+DEPLOY_PATH_PREFIX = "/watchlist"

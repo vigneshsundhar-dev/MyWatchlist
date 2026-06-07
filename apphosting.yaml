@@ -1,0 +1,74 @@
+# Firebase App Hosting configuration.
+# This is deploy-ready, but nothing is live until a backend is created and rolled out.
+runConfig:
+  minInstances: 0
+  maxInstances: 1
+  concurrency: 10
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: WATCHLIST_STORAGE
+    value: firebase
+    availability:
+      - RUNTIME
+
+  - variable: FIRESTORE_COLLECTION
+    value: watchlist_items
+    availability:
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_DEPLOY_ASSET_PREFIX
+    value: /watchlist
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_ENABLED
+    value: "false"
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_MODEL
+    value: gpt-5-nano
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_MONTHLY_BUDGET_USD
+    value: "0.25"
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_MAX_ITEMS
+    value: "40"
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_MAX_INPUT_CHARS
+    value: "24000"
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_MAX_OUTPUT_TOKENS
+    value: "900"
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_INPUT_USD_PER_MILLION
+    value: "0.05"
+    availability:
+      - RUNTIME
+
+  - variable: OPENAI_RANKING_OUTPUT_USD_PER_MILLION
+    value: "0.40"
+    availability:
+      - RUNTIME
+
+  - variable: TMDB_API_KEY
+    secret: tmdbApiKey
+
+  - variable: OMDB_API_KEY
+    secret: omdbApiKey
+
+  - variable: OPENAI_API_KEY
+    secret: openaiApiKey

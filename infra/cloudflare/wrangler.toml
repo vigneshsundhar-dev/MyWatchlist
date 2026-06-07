@@ -1,0 +1,8 @@
+name = "mywatchlist-path-proxy"
+main = "./watchlist-proxy.ts"
+compatibility_date = "2026-06-07"
+workers_dev = false
+
+[vars]
+FIREBASE_APP_ORIGIN = "http://localhost:3000"
+DEPLOY_PATH_PREFIX = "/watchlist"

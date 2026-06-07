@@ -1,27 +1,23 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { NOTE_MIN_LENGTH } from "./constants";
-import type { MediaType, WatchlistDataFile, WatchlistItem, WatchStatus } from "./types";
+import { createFirestoreWatchlistRepository } from "./repositoryFirestore";
+import {
+  applyWatchlistPatch,
+  assertWatchStatusTransition,
+  createWatchlistItemFromInput,
+  WatchlistValidationError
+} from "./repositoryCore";
+import type { NewWatchlistItem } from "./repositoryCore";
+import type { WatchlistDataFile, WatchlistItem } from "./types";
+
+export { WatchlistValidationError };
+export type { NewWatchlistItem };
 
 const dataFileSchema = z.object({
   items: z.array(z.any()),
   updated_at: z.string()
 });
-
-export class WatchlistValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "WatchlistValidationError";
-  }
-}
-
-const allowedTransitions: Record<WatchStatus, WatchStatus[]> = {
-  want_to_watch: ["watched", "abandoned"],
-  watched: ["want_to_watch"],
-  abandoned: ["want_to_watch"]
-};
 
 export interface WatchlistRepository {
   getAllItems(): Promise<WatchlistItem[]>;
@@ -33,12 +29,6 @@ export interface WatchlistRepository {
   abandon(id: string): Promise<WatchlistItem>;
   restore(id: string): Promise<WatchlistItem>;
 }
-
-export type NewWatchlistItem = Omit<WatchlistItem, "id" | "created_at" | "updated_at"> & {
-  id?: string;
-  created_at?: string;
-  updated_at?: string;
-};
 
 export function defaultWatchlistFilePath() {
   return path.join(process.cwd(), "data", "watchlist.json");
@@ -78,21 +68,6 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
     return item;
   }
 
-  function validateNote(note: string) {
-    if (note.trim().length < NOTE_MIN_LENGTH) {
-      throw new WatchlistValidationError(`Note must be at least ${NOTE_MIN_LENGTH} characters.`);
-    }
-  }
-
-  function assertTransition(from: WatchStatus, to: WatchStatus) {
-    if (from === to) {
-      return;
-    }
-    if (!allowedTransitions[from].includes(to)) {
-      throw new WatchlistValidationError(`Unsupported status transition: ${from} to ${to}`);
-    }
-  }
-
   const repository: WatchlistRepository = {
     async getAllItems() {
       const data = await readData();
@@ -105,18 +80,7 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
     },
 
     async createItem(input: NewWatchlistItem) {
-      validateNote(input.note);
-      const now = new Date().toISOString();
-      const item: WatchlistItem = {
-        ...input,
-        id: input.id ?? randomUUID(),
-        status: input.status ?? "want_to_watch",
-        media_type: input.media_type as MediaType,
-        note: input.note.trim(),
-        tara_interested: input.tara_interested ?? false,
-        created_at: input.created_at ?? now,
-        updated_at: input.updated_at ?? now
-      };
+      const item = createWatchlistItemFromInput(input);
       const items = await repository.getAllItems();
       await writeData([item, ...items]);
       return item;
@@ -128,22 +92,9 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
       if (!existing) {
         throw new WatchlistValidationError(`Watchlist item not found: ${id}`);
       }
-      if (patch.note !== undefined) {
-        validateNote(patch.note);
-      }
-      if (patch.status !== undefined) {
-        assertTransition(existing.status, patch.status);
-      }
-      const now = new Date().toISOString();
+      const updatedItem = applyWatchlistPatch(existing, patch);
       const next = items.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              ...patch,
-              note: patch.note?.trim() ?? item.note,
-              updated_at: now
-            }
-          : item
+        item.id === id ? updatedItem : item
       );
       await writeData(next);
       const updated = next.find((item) => item.id === id);
@@ -159,7 +110,7 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
 
     async markWatched(id: string, watchedNote?: string) {
       const item = await requireItem(id);
-      assertTransition(item.status, "watched");
+      assertWatchStatusTransition(item.status, "watched");
       return repository.updateItem(id, {
         status: "watched",
         watched_at: new Date().toISOString(),
@@ -169,7 +120,7 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
 
     async abandon(id: string) {
       const item = await requireItem(id);
-      assertTransition(item.status, "abandoned");
+      assertWatchStatusTransition(item.status, "abandoned");
       return repository.updateItem(id, {
         status: "abandoned",
         abandoned_at: new Date().toISOString()
@@ -178,7 +129,7 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
 
     async restore(id: string) {
       const item = await requireItem(id);
-      assertTransition(item.status, "want_to_watch");
+      assertWatchStatusTransition(item.status, "want_to_watch");
       return repository.updateItem(id, {
         status: "want_to_watch",
         watched_at: undefined,
@@ -191,4 +142,11 @@ export function createFileWatchlistRepository(filePath = defaultWatchlistFilePat
   return repository;
 }
 
-export const watchlistRepository = createFileWatchlistRepository();
+export function createConfiguredWatchlistRepository(): WatchlistRepository {
+  if (process.env.WATCHLIST_STORAGE === "firebase") {
+    return createFirestoreWatchlistRepository();
+  }
+  return createFileWatchlistRepository();
+}
+
+export const watchlistRepository = createConfiguredWatchlistRepository();

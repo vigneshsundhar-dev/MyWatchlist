@@ -1,5 +1,6 @@
 .next/
 node_modules/
+.wrangler/
 coverage/
 dist/
 *.log
@@ -8,4 +9,5 @@ dist/
 .env.local
 .env.*.local
 data/watchlist.json
+data/*.json
 data/*.tmp
