@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Film, Plus, RefreshCw, SlidersHorizontal, Tv } from "lucide-react";
+import { FileText, Film, Plus, RefreshCw, Search, SlidersHorizontal, Tv } from "lucide-react";
 import { formatDate, formatYear, mediaTypeLabel, scoreLabel, statusLabel } from "@/lib/watchlist/format";
 import { watchlistItemPath, watchlistPath } from "@/lib/watchlist/routes";
 import type { MediaType, WatchStatus, WatchlistItem } from "@/lib/watchlist/types";
@@ -19,6 +19,14 @@ function historicalSort(a: WatchlistItem, b: WatchlistItem) {
   const aDate = a.watched_at ?? a.abandoned_at ?? a.updated_at;
   const bDate = b.watched_at ?? b.abandoned_at ?? b.updated_at;
   return new Date(bDate).getTime() - new Date(aDate).getTime();
+}
+
+function matchesQuery(item: WatchlistItem, query: string) {
+  const haystack = [item.title, item.original_title, item.overview, ...(item.genres ?? [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
 }
 
 function scores(item: WatchlistItem) {
@@ -127,19 +135,24 @@ export function WatchlistDashboard({ items }: Readonly<{ items: WatchlistItem[] 
   const [mediaType, setMediaType] = useState<MediaType>("movie");
   const [status, setStatus] = useState<WatchStatus>("want_to_watch");
   const [withTara, setWithTara] = useState(false);
+  const [query, setQuery] = useState("");
   const [noteItem, setNoteItem] = useState<WatchlistItem | null>(null);
   const [reranking, setReranking] = useState(false);
+
+  const trimmedQuery = query.trim().toLowerCase();
+  const searching = trimmedQuery.length > 0;
 
   const visibleItems = useMemo(() => {
     return items
       .filter((item) => item.media_type === mediaType)
       .filter((item) => item.status === status)
       .filter((item) => (withTara ? item.tara_interested : true))
+      .filter((item) => (trimmedQuery ? matchesQuery(item, trimmedQuery) : true))
       .sort(status === "want_to_watch" ? rankedSort : historicalSort);
-  }, [items, mediaType, status, withTara]);
+  }, [items, mediaType, status, withTara, trimmedQuery]);
 
-  const heroItems = status === "want_to_watch" ? visibleItems.slice(0, 5) : [];
-  const listItems = status === "want_to_watch" ? visibleItems.slice(5) : visibleItems;
+  const heroItems = status === "want_to_watch" && !searching ? visibleItems.slice(0, 5) : [];
+  const listItems = status === "want_to_watch" && !searching ? visibleItems.slice(5) : visibleItems;
 
   async function rerank() {
     setReranking(true);
@@ -198,6 +211,17 @@ export function WatchlistDashboard({ items }: Readonly<{ items: WatchlistItem[] 
               <option value="abandoned">Abandoned</option>
             </select>
           </label>
+          <label className="inline-row search-input">
+            <Search size={16} aria-hidden />
+            <input
+              className="input"
+              type="search"
+              placeholder="Search title…"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search watchlist"
+            />
+          </label>
         </div>
         <button className="btn" disabled={reranking} onClick={rerank}>
           <RefreshCw size={16} aria-hidden />
@@ -219,14 +243,14 @@ export function WatchlistDashboard({ items }: Readonly<{ items: WatchlistItem[] 
       ) : null}
 
       <div className="section-title">
-        <h2>{status === "want_to_watch" ? "Ranked List" : statusLabel(status)}</h2>
+        <h2>{searching ? "Search Results" : status === "want_to_watch" ? "Ranked List" : statusLabel(status)}</h2>
       </div>
       <section className="list">
         {listItems.length > 0 ? (
           listItems.map((item) => <ListCard item={item} key={item.id} onShowNote={setNoteItem} />)
         ) : (
           <div className="panel card-body empty">
-            No items match the current view.
+            {searching ? `No items match “${query.trim()}”.` : "No items match the current view."}
           </div>
         )}
       </section>
